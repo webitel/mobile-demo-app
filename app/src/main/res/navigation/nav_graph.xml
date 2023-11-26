@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/FirstFragment">
+
+    <fragment
+        android:id="@+id/FirstFragment"
+        android:name="com.webitel.mobile_demo_app.ui.SimpleFragment"
+        android:label="Webitel"
+        tools:layout="@layout/fragment_simple">
+        <action
+            android:id="@+id/action_FirstFragment_to_callDetailFragment"
+            app:destination="@id/callDetailFragment"
+            app:enterAnim="@anim/enter_anim"
+            app:exitAnim="@anim/exit_anim"
+            app:popEnterAnim="@anim/pop_enter_anim"
+            app:popExitAnim="@anim/pop_exit_anim" />
+        <action
+            android:id="@+id/action_FirstFragment_to_chatFragment"
+            app:destination="@id/chatFragment"
+            app:enterAnim="@anim/enter_anim"
+            app:exitAnim="@anim/exit_anim"
+            app:popEnterAnim="@anim/pop_enter_anim"
+            app:popExitAnim="@anim/pop_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/callDetailFragment"
+        android:name="com.webitel.mobile_demo_app.ui.call.CallDetailFragment"
+        android:label="Call"
+        tools:layout="@layout/fragment_call_detail" />
+
+    <fragment
+        android:id="@+id/chatFragment"
+        android:name="com.webitel.mobile_demo_app.ui.chat.ChatFragment"
+        android:label="Chat"
+        tools:layout="@layout/fragment_chat" />
+</navigation>

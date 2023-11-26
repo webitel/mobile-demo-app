@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "320819679245",
+    "project_id": "messaging-25c48",
+    "storage_bucket": "messaging-25c48.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:320819679245:android:01e360d7d8866a574ac544",
+        "android_client_info": {
+          "package_name": "com.webitel.mobile_demo_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDLCOeeORMMdBi6B72ES_5PXztkywtx-6A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
