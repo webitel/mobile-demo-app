@@ -5,12 +5,10 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.webitel.mobile_demo_app.app.DemoApp
 import com.webitel.mobile_demo_app.notifications.Notifications
-import com.webitel.mobile_sdk.domain.CallbackListener
-import com.webitel.mobile_sdk.domain.Error
-import com.webitel.mobile_sdk.domain.RegisterResult
+import kotlinx.coroutines.runBlocking
 
 
-class MyFirebaseMessagingService: FirebaseMessagingService() {
+class MyFirebaseMessagingService : FirebaseMessagingService() {
 
 
     override fun onNewToken(token: String) {
@@ -31,12 +29,12 @@ class MyFirebaseMessagingService: FirebaseMessagingService() {
 
 
     private fun sendRegistrationToServer(token: String) {
-        DemoApp.instance.portalClient.registerFCMToken(
-            token, object : CallbackListener<RegisterResult> {
-            override fun onError(e: Error) {
-                Log.e("registerFCMErr", e.message)
+        runBlocking {
+            try {
+                DemoApp.instance.portalClient2.registerFCMToken(token)
+            } catch (e: Exception) {
+                Log.e("sendRegistration", e.message.toString())
             }
-            override fun onSuccess(t: RegisterResult) {}
-        })
+        }
     }
 }

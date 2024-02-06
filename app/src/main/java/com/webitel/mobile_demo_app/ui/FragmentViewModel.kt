@@ -7,26 +7,22 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.webitel.mobile_demo_app.app.DemoApp
 import com.webitel.mobile_demo_app.data.UsersRepository
+import com.webitel.mobile_demo_app.data.remote.PortalCustomerService
 import com.webitel.mobile_demo_app.notifications.Notifications
 import com.webitel.mobile_sdk.domain.Call
 import com.webitel.mobile_sdk.domain.CallState
 import com.webitel.mobile_sdk.domain.CallStateListener
-import com.webitel.mobile_sdk.domain.CallbackListener
-import com.webitel.mobile_sdk.domain.Code
 import com.webitel.mobile_sdk.domain.Error
-import com.webitel.mobile_sdk.domain.LoginListener
-import com.webitel.mobile_sdk.domain.Session
-import com.webitel.mobile_sdk.domain.VoiceClient
+import com.webitel.mobile_demo_app.data.remote.PortalCustomerService.UserActivity
+import com.webitel.mobile_demo_app.data.remote.PortalException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 
-
-class FragmentViewModel: ViewModel() {
+class FragmentViewModel : ViewModel() {
 
     private val usersRepository = UsersRepository(DemoApp.instance)
-
-    private val portalClient = DemoApp.instance.portalClient
+    private val portalClient = DemoApp.instance.portalClient2
 
     private val _userActivity = MutableLiveData(UserActivity.NONE)
     var userActivity: LiveData<UserActivity> = _userActivity
@@ -61,56 +57,47 @@ class FragmentViewModel: ViewModel() {
     }
 
 
+    fun userLogout() {
+        viewModelScope.launch(Dispatchers.IO) {
+            portalClient.logout()
+        }
+    }
+
+
+    fun setUser() {
+        viewModelScope.launch(Dispatchers.IO) {
+            portalClient.setUser(usersRepository.getUser())
+        }
+    }
+
+
     private fun checkCallsAndChat() {
-        portalClient.getVoiceClient(object: CallbackListener<VoiceClient> {
-            override fun onSuccess(t: VoiceClient) {
-                if (t.activeCall != null)  {
-                    setUserActivity(UserActivity.CALL)
-                    t.activeCall?.addListener(callListener)
-                }else {
-                    setUserActivity(UserActivity.NONE)
-                   // checkChat()
-                }
+        viewModelScope.launch(Dispatchers.IO) {
+            val userActivity = portalClient.getUserActivity()
+            setUserActivity(userActivity)
+            if (userActivity == UserActivity.CALL) {
+                portalClient.setCallListener(callListener)
             }
-
-            override fun onError(e: Error) {
-                if (e.code != Code.UNAUTHENTICATED) {
-                    setUserActivity(UserActivity.UNAVAILABLE)
-                    viewModelScope.launch(Dispatchers.Main) {
-                        Toast.makeText(
-                            DemoApp.instance,
-                            "${e.code}\n${e.message}",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
-                } else {
-                    setUserActivity(UserActivity.NONE)
-                }
-            }
-        })
+        }
     }
 
 
-    private fun getCapabilities(callback: (List<String>?) -> Unit) {
-        portalClient.getUserSession(object: CallbackListener<Session> {
-            override fun onSuccess(t: Session) {
-                onResultCapabilities(t, callback)
+    private suspend fun getCapabilities(callback: (List<String>?) -> Unit) {
+        try {
+            val capabilities = portalClient.getUserCapabilities()
+            viewModelScope.launch(Dispatchers.Main) {
+                _isLoading.value = false
+                callback(capabilities)
             }
 
-            override fun onError(e: Error) {
-                if (e.code == Code.UNAUTHENTICATED) {
-                    userLogin(callback)
+        } catch (e: PortalException) {
+            onErrorCapabilities(e, callback)
+        }
 
-                } else {
-                    onErrorCapabilities(e, callback)
-                    setUserActivity(UserActivity.UNAVAILABLE)
-                }
-            }
-        })
     }
 
 
-    private fun onErrorCapabilities(e: Error, callback: (List<String>?) -> Unit) {
+    private fun onErrorCapabilities(e: PortalException, callback: (List<String>?) -> Unit) {
         viewModelScope.launch(Dispatchers.Main) {
             _isLoading.value = false
             callback.invoke(null)
@@ -123,34 +110,7 @@ class FragmentViewModel: ViewModel() {
     }
 
 
-    private fun onResultCapabilities(session: Session, callback: (List<String>?) -> Unit) {
-        val scope = arrayListOf<String>()
-        if (session.isChatAvailable) scope.add("chat")
-        if (session.isVoiceAvailable) scope.add("call")
-        viewModelScope.launch(Dispatchers.Main) {
-            callback.invoke(scope)
-            _isLoading.value = false
-        }
-    }
-
-
-    private fun userLogin(callback: (List<String>?) -> Unit) {
-        val user = usersRepository.getUser()
-        portalClient.userLogin(user, object: LoginListener {
-            override fun onLoginFinished(session: Session) {
-                onResultCapabilities(session, callback)
-            }
-
-            override fun onLogoutFinished() {}
-
-            override fun onError(e: Error) {
-                onErrorCapabilities(e, callback)
-            }
-        })
-    }
-
-
-    private fun setUserActivity(value: UserActivity) {
+    private fun setUserActivity(value: PortalCustomerService.UserActivity) {
         viewModelScope.launch(Dispatchers.Main) {
             _userActivity.value = value
             _isLoading.value = false
@@ -158,7 +118,7 @@ class FragmentViewModel: ViewModel() {
     }
 
 
-    private val callListener = object: CallStateListener {
+    private val callListener = object : CallStateListener {
         override fun onCreateCall(call: Call) {}
 
         override fun onCallStateChanged(call: Call, oldState: List<CallState>) {
@@ -169,25 +129,6 @@ class FragmentViewModel: ViewModel() {
         }
 
         override fun onCreateCallFailed(e: Error) {}
-    }
-
-
-    enum class UserActivity {
-
-        /**
-         * User has active CALL
-         */
-        CALL,
-
-        /**
-         * User has NO activities
-         */
-        NONE,
-
-        /**
-         * User is UNAVAILABLE
-         */
-        UNAVAILABLE
     }
 }
 

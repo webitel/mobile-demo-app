@@ -7,6 +7,14 @@
     android:background="@color/main"
     tools:context=".ui.SimpleFragment">
 
+    <Button
+        android:id="@+id/logout_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Logout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <ImageView
         android:layout_width="0dp"
         android:layout_height="0dp"

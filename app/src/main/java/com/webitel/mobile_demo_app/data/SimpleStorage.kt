@@ -19,7 +19,7 @@ class SimpleStorage(context: Context) {
 
 
     fun getUser(): User? {
-        val json =  sharedPreferences.getString(STORE_KEY_USER_DATA, null)
+        val json = sharedPreferences.getString(STORE_KEY_USER_DATA, null)
         if (!json.isNullOrEmpty()) {
             return gson.fromJson(json, User::class.java)
         }

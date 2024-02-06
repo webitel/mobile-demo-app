@@ -36,6 +36,7 @@ class SonarDrawable(
             ripple.setColor(color)
         }
     }
+
     fun setStrokeWidth(width: Float) {
         for (ripple in ripples) {
             ripple.setStrokeWidth(width)
@@ -70,11 +71,13 @@ class SonarDrawable(
         ripples.forEach { it.draw(canvas) }
     }
 
-    override fun setAlpha(alpha: Int) {/*ignore*/}
+    override fun setAlpha(alpha: Int) {/*ignore*/
+    }
 
     override fun getOpacity(): Int = PixelFormat.OPAQUE
 
-    override fun setColorFilter(colorFilter: ColorFilter?) {/*ignore*/}
+    override fun setColorFilter(colorFilter: ColorFilter?) {/*ignore*/
+    }
 
     override fun setVisible(visible: Boolean, restart: Boolean): Boolean {
         return super.setVisible(visible, restart).also { changed ->
@@ -87,7 +90,7 @@ class SonarDrawable(
     private fun initScales(arg: Array<Float>): FloatArray {
         //include up (1f) and down (0f) bounds
         return FloatArray(arg.size + 2) {
-            when(it) {
+            when (it) {
                 0 -> 0f
                 arg.size + 1 -> 1f
                 else -> arg[it - 1]
@@ -98,7 +101,7 @@ class SonarDrawable(
     private fun initAlphas(arg: Array<Float>): IntArray {
         //include up (0xFF) and down (0x00) bounds
         return IntArray(arg.size + 2) {
-            when(it) {
+            when (it) {
                 0 -> OPAQUE_ALPHA
                 arg.size + 1 -> 0
                 else -> (OPAQUE_ALPHA * arg[it - 1]).roundToInt()
@@ -118,7 +121,7 @@ class SonarDrawable(
             color = tint
         }
 
-        fun setColor(color: Int){
+        fun setColor(color: Int) {
             tint = color
             paint.color = color
         }
@@ -144,7 +147,12 @@ class SonarDrawable(
                 paint.strokeWidth = width
             }
 
-        fun draw(canvas: Canvas) = canvas.drawCircle(rect.centerX(),rect.centerY(), rect.height()/2, paint)//.drawCircle(rect, paint)
+        fun draw(canvas: Canvas) = canvas.drawCircle(
+            rect.centerX(),
+            rect.centerY(),
+            rect.height() / 2,
+            paint
+        )//.drawCircle(rect, paint)
 
         private fun computeIntermediateScale(fraction: Float): Float {
             val step = 1f / (scales.size - 1)
@@ -157,7 +165,8 @@ class SonarDrawable(
             val step = 1f / (alphas.size - 1)
             val alphasIndex = (fraction * (alphas.size - 1)).toInt()
             val relativeFraction = (fraction - step * alphasIndex) / step
-            val alpha = (relativeFraction * (alphas[alphasIndex + 1] - alphas[alphasIndex]) + alphas[alphasIndex]).roundToInt()
+            val alpha =
+                (relativeFraction * (alphas[alphasIndex + 1] - alphas[alphasIndex]) + alphas[alphasIndex]).roundToInt()
             return tint.applyAlpha(alpha)
         }
 

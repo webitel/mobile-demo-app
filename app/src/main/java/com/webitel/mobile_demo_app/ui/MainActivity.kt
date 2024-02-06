@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
@@ -16,9 +17,8 @@ import com.webitel.mobile_demo_app.R
 import com.webitel.mobile_demo_app.app.DemoApp
 import com.webitel.mobile_demo_app.databinding.ActivityMainBinding
 import com.webitel.mobile_demo_app.notifications.Notifications
-import com.webitel.mobile_sdk.domain.CallbackListener
-import com.webitel.mobile_sdk.domain.Error
-import com.webitel.mobile_sdk.domain.VoiceClient
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -51,7 +51,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
-
         handleIntent(intent)
     }
 
@@ -59,21 +58,7 @@ class MainActivity : AppCompatActivity() {
     private fun handleIntent(intent: Intent?) {
         when (intent?.action) {
             "ACTION_HANGUP_CALL_FROM_NOTIFY" -> {
-                DemoApp.instance.portalClient.getVoiceClient(object :
-                    CallbackListener<VoiceClient> {
-                    override fun onSuccess(t: VoiceClient) {
-                        hangupCall(t)
-                    }
-
-                    override fun onError(e: Error) {
-                        Toast.makeText(
-                            this@MainActivity,
-                            e.message,
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-
-                })
+                hangupCall()
             }
             "OPEN_CALL_DETAIL_FROM_NOTIFY" -> {
                 val navController = findNavController(R.id.nav_host_fragment_content_main)
@@ -86,14 +71,26 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    private fun hangupCall(t: VoiceClient) {
-        t.activeCall?.disconnect()
+    private fun hangupCall() {
+        lifecycleScope.launch(IO) {
+            try {
+                DemoApp.instance.portalClient2.disconnectCall()
+            } catch (e: Exception) {
+                Toast.makeText(
+                    this@MainActivity,
+                    e.message,
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
     }
 
 
     private fun checkAndRequestPermissions(): Boolean {
         val recordAudio =
             ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+        val readExternal =
+            ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
 
 
         val listPermissionsNeeded: MutableList<String> = ArrayList()
@@ -101,6 +98,10 @@ class MainActivity : AppCompatActivity() {
         if (recordAudio != PackageManager.PERMISSION_GRANTED) {
             listPermissionsNeeded.add(Manifest.permission.RECORD_AUDIO)
         }
+        if (readExternal != PackageManager.PERMISSION_GRANTED) {
+            listPermissionsNeeded.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+        }
+
 
         if (listPermissionsNeeded.isNotEmpty()) {
             ActivityCompat.requestPermissions(

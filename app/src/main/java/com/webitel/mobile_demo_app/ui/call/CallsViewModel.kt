@@ -1,5 +1,6 @@
 package com.webitel.mobile_demo_app.ui.call
 
+import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -9,9 +10,7 @@ import com.webitel.mobile_demo_app.notifications.Notifications
 import com.webitel.mobile_sdk.domain.Call
 import com.webitel.mobile_sdk.domain.CallState
 import com.webitel.mobile_sdk.domain.CallStateListener
-import com.webitel.mobile_sdk.domain.CallbackListener
 import com.webitel.mobile_sdk.domain.Error
-import com.webitel.mobile_sdk.domain.VoiceClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -23,20 +22,19 @@ class CallsViewModel : ViewModel() {
     private val _call = MutableLiveData<Call?>()
     var callLive: LiveData<Call?> = _call
 
-    private val portalClient = DemoApp.instance.portalClient
+    private val portalClient = DemoApp.instance.portalClient2
 
 
     fun makeCall() {
         viewModelScope.launch(Dispatchers.IO) {
-            portalClient.getVoiceClient(object : CallbackListener<VoiceClient> {
-                override fun onSuccess(t: VoiceClient) {
-                    makeCall(t)
-                }
-
-                override fun onError(e: Error) {
-                    _error.postValue(e)
-                }
-            })
+            try {
+                portalClient.makeCall(listener = callListener)
+            } catch (e: Exception) {
+                Toast.makeText(
+                    DemoApp.instance,
+                    e.message, Toast.LENGTH_LONG
+                ).show()
+            }
         }
     }
 
@@ -66,11 +64,6 @@ class CallsViewModel : ViewModel() {
             _error.value = null
             _call.value = null
         }
-    }
-
-
-    private fun makeCall(v: VoiceClient) {
-        v.makeCall(callListener)
     }
 
 

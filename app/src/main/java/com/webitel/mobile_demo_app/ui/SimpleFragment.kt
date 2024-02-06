@@ -9,7 +9,7 @@ import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
-import com.webitel.mobile_demo_app.ui.FragmentViewModel.UserActivity
+import com.webitel.mobile_demo_app.data.remote.PortalCustomerService.UserActivity
 import com.webitel.mobile_demo_app.R
 import com.webitel.mobile_demo_app.databinding.FragmentSimpleBinding
 
@@ -34,6 +34,8 @@ class SimpleFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        vm.setUser()
+
         binding.fab.setOnClickListener {
             onCallChatButtonClick()
         }
@@ -46,6 +48,10 @@ class SimpleFragment : Fragment() {
         binding.fabChat.setOnClickListener {
             closeFABMenu()
             openChatDetail()
+        }
+
+        binding.logoutBtn.setOnClickListener {
+            vm.userLogout()
         }
 
         vm.userActivity.observe(viewLifecycleOwner) {
@@ -67,19 +73,23 @@ class SimpleFragment : Fragment() {
         vm.checkActivities()
     }
 
+
     override fun onPause() {
         super.onPause()
         closeFABMenu()
     }
+
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
     }
 
+
     private fun setupProgressBar(visible: Boolean) {
         binding.progressBar.visibility = if (visible) View.VISIBLE else View.GONE
     }
+
 
     private fun setupButton(userActivity: UserActivity) {
         when (userActivity) {

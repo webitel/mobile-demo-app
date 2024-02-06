@@ -1,12 +1,13 @@
 package com.webitel.mobile_demo_app.data
 
 import android.content.Context
+import android.util.Log
 import com.webitel.mobile_sdk.domain.User
 
 
 class UsersRepository(context: Context) {
 
-    private val iss = "https://example.org/kolobok"
+    private val iss = "https://example.org/kolobok1"
     private val storage = SimpleStorage(context)
 
 
@@ -26,7 +27,13 @@ class UsersRepository(context: Context) {
             iss = iss,
             sub = randomString(15),
             name = randomString(5)
-        ).build()
+        )
+            .locale("uk-UA")
+            .email("simple@gmail.com")
+            .emailVerified(true)
+            .phoneNumber("911")
+            .phoneNumberVerified(true)
+            .build()
     }
 
 
