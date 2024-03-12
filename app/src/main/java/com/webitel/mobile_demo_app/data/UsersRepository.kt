@@ -1,13 +1,12 @@
 package com.webitel.mobile_demo_app.data
 
 import android.content.Context
-import android.util.Log
 import com.webitel.mobile_sdk.domain.User
 
 
 class UsersRepository(context: Context) {
 
-    private val iss = "https://example.org/kolobok1"
+    private val iss = "https://dev.webitel.com/portal"
     private val storage = SimpleStorage(context)
 
 

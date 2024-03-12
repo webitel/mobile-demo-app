@@ -32,6 +32,13 @@ class PortalCustomerService(application: Application, token: String, address: St
     private var _chatClient: ChatClient? = null
     private var _serviceDialog: Dialog? = null
 
+    private val useJWT = false
+    private val jwtList = arrayListOf(
+        "eyJhbGciOiJSUzI1NiIsImtpZCI6Im1YRjdVdzhMb2JOWERUQUVrbVh1ZFEiLCJ0eXAiOiJKV1QifQ.eyJhdWQiOiJodHRwczovL2FwaS5wb3MuZmhsLmxvY2FsIiwiZXhwIjoxNzEwMjQ2NjYwLCJpYXQiOjE3MTAyNDY1NDUsImlpZCI6Imp3dF9tb2JpbGVfZGVtb19jdXN0b21lcl9mYWtlX2lkIiwiaXNzIjoiaHR0cHM6Ly9kZXYud2ViaXRlbC5jb20vcG9ydGFsIiwianRpIjoiIiwibmFtZSI6IkpvaG4gRG9lIChKV1Q6RGVtbykiLCJuYmYiOjE3MTAyNDY2MDAsInBsdGYiOiJOQVRJVkUiLCJyb2xlIjoiY2xpZW50Iiwic2NvcGUiOlsib2ZmbGluZV9hY2Nlc3MiLCJvcGVuaWQiLCJwb3MtY2xpZW50IiwicG9zLWNsaWVudC11bnZlcmlmaWVkIl0sInN1YiI6IjVkZDY5MzM5NTcwNTNhOTBiYTdkYTBhMTM2MjQ0MzNmIiwidWlkIjoiY2Q2Njk3ZjctOTg4ZS00MmU3LWFhYWYtYWNhMWI5MmU0ZWI5In0.dTULWh8NC7Nj26zoAs3lnqOnMso2xq7bJQIMume0zkcFD73ljCU2dDdmq9N2M7dzc_IlfkdRFL-Z6AZDBwTOe_uvxDyLCbyEmTHA2jaQFu9cnp15UPOvFy6aSlP9jWOtcdlhMAv8BE7DyvL2tnNOFGQBVzZLx4bQ7va85g2Jbbg4YIfwnp2Z9vPL0ag8-Q2IP619fBvcFjYXjRnX5IpYrf_cUsUirJe7hasekXe37UCvAQ0o2MnTqmXx2aYuTa9ArkbYYNvMMAcjUHE4ZNQTwk3UvvnMs8wqWhHSXfQ0UpQICJ-TVWC2KmTxbfRq8IklxnvMHZDkb6MWZm1zPkBSNQ",
+        "eyJhbGciOiJSUzI1NiIsImtpZCI6Im1YRjdVdzhMb2JOWERUQUVrbVh1ZFEiLCJ0eXAiOiJKV1QifQ.eyJhdWQiOiJodHRwczovL2FwaS5wb3MuZmhsLmxvY2FsIiwiZXhwIjoxNzEwMjQ2NzIwLCJpYXQiOjE3MTAyNDY1NDUsImlpZCI6Imp3dF9tb2JpbGVfZGVtb19jdXN0b21lcl9mYWtlX2lkIiwiaXNzIjoiaHR0cHM6Ly9kZXYud2ViaXRlbC5jb20vcG9ydGFsIiwianRpIjoiIiwibmFtZSI6IkpvaG4gRG9lIChKV1Q6RGVtbykiLCJuYmYiOjE3MTAyNDY2NTUsInBsdGYiOiJOQVRJVkUiLCJyb2xlIjoiY2xpZW50Iiwic2NvcGUiOlsib2ZmbGluZV9hY2Nlc3MiLCJvcGVuaWQiLCJwb3MtY2xpZW50IiwicG9zLWNsaWVudC11bnZlcmlmaWVkIl0sInN1YiI6IjVkZDY5MzM5NTcwNTNhOTBiYTdkYTBhMTM2MjQ0MzNmIiwidWlkIjoiY2Q2Njk3ZjctOTg4ZS00MmU3LWFhYWYtYWNhMWI5MmU0ZWI5In0.cc-mUorF5TU2UpF8zRlkonIFC5uTBY9N2Ia0skXebkwJhJGCuIuRfLdoMw-PjzyFqLXACLRxzFTHktwy9WvyPM6DDs4KolhUZoXE9awQXnQO2nkbnrmRBNI3hZ4U-sykrZLMLZ9D75yDB7Okw6yI6VkdWi_oBwsXDzBDNzu_q4vuV3ZZGKw0CAEUt8NUqwoUUC9aeEw-Un80bm9pdqP27ki0cNvignEhkQ3Js0ITQeS4FDI43w0mC2ovIY-zdJoYzDIxxHiVsijXq-X7ye0yAczic46jhiEj67LpDbUA0vrN1aKSJo0d_jsYHWWwLdOCTMrFBSUPrJcRziTCzAmJ1A",
+        "eyJhbGciOiJSUzI1NiIsImtpZCI6Im1YRjdVdzhMb2JOWERUQUVrbVh1ZFEiLCJ0eXAiOiJKV1QifQ.eyJhdWQiOiJodHRwczovL2FwaS5wb3MuZmhsLmxvY2FsIiwiZXhwIjoxNzEwMjQ2NzgwLCJpYXQiOjE3MTAyNDY1NDUsImlpZCI6Imp3dF9tb2JpbGVfZGVtb19jdXN0b21lcl9mYWtlX2lkIiwiaXNzIjoiaHR0cHM6Ly9kZXYud2ViaXRlbC5jb20vcG9ydGFsIiwianRpIjoiIiwibmFtZSI6IkpvaG4gRG9lIChKV1Q6RGVtbykiLCJuYmYiOjE3MTAyNDY3MTUsInBsdGYiOiJOQVRJVkUiLCJyb2xlIjoiY2xpZW50Iiwic2NvcGUiOlsib2ZmbGluZV9hY2Nlc3MiLCJvcGVuaWQiLCJwb3MtY2xpZW50IiwicG9zLWNsaWVudC11bnZlcmlmaWVkIl0sInN1YiI6IjVkZDY5MzM5NTcwNTNhOTBiYTdkYTBhMTM2MjQ0MzNmIiwidWlkIjoiY2Q2Njk3ZjctOTg4ZS00MmU3LWFhYWYtYWNhMWI5MmU0ZWI5In0.W1Gc03RK2MkVI0jSDRPzBJmgg4Qoc6Z9PeGm6uDbv_BnE92yB387yac0gafpMnsLIMaXN4dLXjCZln6ByYIVAg19uPtQMJv90M819YTdyFIvuT7nl8KD2HSoVrVP_NEk_9Dct7EG8ojtQZ-19anuZADICHjWYF7kfv3aKtF4xA681IxSi_j60OIOii8ldcyyqlAahfWCACR6oEXFNaH2uxXRu5TzZ409edDnf65VsvsE3oV_Jv_lbBgWDtLMN6gm7mvJHDt1-JB-Ft9ivpiFvkr9AH4zS_-ZFFh6aH0wWOOgwoSY4IfreYaX2BxYYOfyJI4_BPYg-lp-v-d7Z_Zpyw"
+    )
+
 
     init {
         _portalClient = createClient(application, token, address)
@@ -40,7 +47,7 @@ class PortalCustomerService(application: Application, token: String, address: St
 
     suspend fun registerFCMToken(token: String) {
         return suspendCoroutine { continuation ->
-            _portalClient.registerFCMToken(
+            _portalClient.registerDevice(
                 token, object : CallbackListener<RegisterResult> {
                     override fun onError(e: Error) {
                         continuation.resumeWithException(
@@ -54,6 +61,7 @@ class PortalCustomerService(application: Application, token: String, address: St
                 })
         }
     }
+
 
     suspend fun logout() {
         return suspendCoroutine { continuation ->
@@ -105,6 +113,7 @@ class PortalCustomerService(application: Application, token: String, address: St
         if (session.isVoiceAvailable) scope.add("call")
         return scope
     }
+
 
     suspend fun getUserCapabilities(): List<String> {
         return suspendCoroutine { continuation ->
@@ -789,6 +798,16 @@ class PortalCustomerService(application: Application, token: String, address: St
 
 
     private fun login(callback: (Session?, Error?) -> Unit) {
+        if (useJWT) {
+            setJWT(callback)
+
+        } else {
+            userLogin(callback)
+        }
+    }
+
+
+    private fun userLogin(callback: (Session?, Error?) -> Unit) {
         val u = user
         if (u != null) {
             _portalClient.userLogin(u, object : LoginListener {
@@ -813,6 +832,37 @@ class PortalCustomerService(application: Application, token: String, address: St
             )
         }
     }
+
+
+    private fun setJWT(callback: (Session?, Error?) -> Unit) {
+        val token = generateJWT()
+        if (!token.isNullOrEmpty()) {
+            _portalClient.setAccessToken(token, object : CallbackListener<Session> {
+                override fun onError(e: Error) {
+                    callback(null, e)
+                }
+
+                override fun onSuccess(t: Session) {
+                    callback(t, null)
+                }
+            })
+
+        } else {
+            callback(
+                null,
+                Error(
+                    "List with JWT is empty",
+                    Code.NOT_FOUND
+                )
+            )
+        }
+    }
+
+
+    private fun generateJWT(): String? {
+        return jwtList.removeFirstOrNull()
+    }
+
 
     enum class UserActivity {
 

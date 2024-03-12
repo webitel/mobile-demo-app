@@ -51,8 +51,8 @@ dependencies {
     implementation("androidx.navigation:navigation-fragment-ktx:2.3.5")
     implementation("com.github.bumptech.glide:glide:4.13.0")
 
-    //implementation("com.webitel:mobile-sdk:0.4.1")
-    implementation("com.github.webitel:mobile-sdk:0.4.1")
+    //implementation("com.webitel:mobile-sdk:0.5.6")
+    implementation("com.github.webitel:mobile-sdk:0.5.6")
 
     implementation("androidx.room:room-ktx:2.6.1")
     annotationProcessor("androidx.room:room-compiler:2.6.1")

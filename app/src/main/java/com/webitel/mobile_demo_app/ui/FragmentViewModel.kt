@@ -1,5 +1,6 @@
 package com.webitel.mobile_demo_app.ui
 
+import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -59,7 +60,11 @@ class FragmentViewModel : ViewModel() {
 
     fun userLogout() {
         viewModelScope.launch(Dispatchers.IO) {
-            portalClient.logout()
+            try {
+                portalClient.logout()
+            } catch (e: PortalException) {
+                Log.e("userLogout", e.message)
+            }
         }
     }
 

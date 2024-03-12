@@ -58,26 +58,30 @@ class MessagesRepository(
 
     suspend fun loadUpdates(): Int {
         val limitItems = 20
-        var sizeReceived: Int
+        var sizeReceived = 0
         var sizeSaved = 0
 
         var id = dao.getNewestMessagesId() ?: 0
         if (id == 0L) return loadHistory()
 
         do {
-            val m = remoteRepository.getUpdates(
-                PortalCustomerService.Params(limit = limitItems, offset = id),
-                dialogListener
-            )
+            try {
+                val m = remoteRepository.getUpdates(
+                    PortalCustomerService.Params(limit = limitItems, offset = id),
+                    dialogListener
+                )
 
-            sizeSaved += m.size
-            sizeReceived = m.size
-            id = m.lastOrNull()?.id ?: 0
+                sizeSaved += m.size
+                sizeReceived = m.size
+                id = m.lastOrNull()?.id ?: 0
 
-            val md = m.map {
-                it.toData()
+                val md = m.map {
+                    it.toData()
+                }
+                saveMessages(md)
+            }catch (e: PortalException) {
+                Log.e("loadUpdates", e.message)
             }
-            saveMessages(md)
 
         } while (sizeReceived == limitItems)
 

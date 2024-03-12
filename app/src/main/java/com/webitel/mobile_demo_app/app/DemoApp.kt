@@ -3,7 +3,6 @@ package com.webitel.mobile_demo_app.app
 import android.app.Application
 import com.webitel.mobile_demo_app.data.local.LocalCacheProvider
 import com.webitel.mobile_demo_app.data.remote.PortalCustomerService
-import com.webitel.mobile_sdk.domain.PortalClient
 
 
 class DemoApp: Application()  {
