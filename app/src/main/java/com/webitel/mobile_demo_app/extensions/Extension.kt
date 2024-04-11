@@ -6,7 +6,7 @@ import java.util.UUID
 
 fun Message.toData(): MessageDataItem {
     return MessageDataItem(
-        uuid = UUID.randomUUID().toString(),
+        uuid = this.sendId.ifEmpty { UUID.randomUUID().toString() },
         id = this.id,
         dialogId = "",
         authorName = this.from.name,

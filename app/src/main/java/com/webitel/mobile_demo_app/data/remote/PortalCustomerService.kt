@@ -7,6 +7,8 @@ import com.webitel.mobile_sdk.domain.CallStateListener
 import com.webitel.mobile_sdk.domain.CallbackListener
 import com.webitel.mobile_sdk.domain.ChatClient
 import com.webitel.mobile_sdk.domain.Code
+import com.webitel.mobile_sdk.domain.ConnectListener
+import com.webitel.mobile_sdk.domain.ConnectState
 import com.webitel.mobile_sdk.domain.Dialog
 import com.webitel.mobile_sdk.domain.DialogListener
 import com.webitel.mobile_sdk.domain.LoginListener
@@ -20,6 +22,9 @@ import com.webitel.mobile_sdk.domain.RegisterResult
 import com.webitel.mobile_sdk.domain.StreamObserver
 import com.webitel.mobile_sdk.domain.User
 import com.webitel.mobile_sdk.domain.VoiceClient
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -42,6 +47,32 @@ class PortalCustomerService(application: Application, token: String, address: St
 
     init {
         _portalClient = createClient(application, token, address)
+    }
+
+
+    fun addConnectListener(listener: ConnectListener) {
+        CoroutineScope(Dispatchers.IO).launch {
+            _portalClient.addConnectListener(listener)
+        }
+    }
+
+
+    fun removeConnectListener(listener: ConnectListener) {
+        CoroutineScope(Dispatchers.IO).launch {
+            _portalClient.removeConnectListener(listener)
+        }
+    }
+
+
+    fun openConnect() {
+        CoroutineScope(Dispatchers.IO).launch {
+            _portalClient.openConnect()
+        }
+    }
+
+
+    fun getConnectState(): ConnectState {
+        return _portalClient.getConnectState()
     }
 
 

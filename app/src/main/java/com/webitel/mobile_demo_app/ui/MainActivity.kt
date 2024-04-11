@@ -3,9 +3,10 @@ package com.webitel.mobile_demo_app.ui
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
@@ -13,14 +14,19 @@ import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
+import com.google.firebase.messaging.FirebaseMessaging
 import com.webitel.mobile_demo_app.R
 import com.webitel.mobile_demo_app.app.DemoApp
 import com.webitel.mobile_demo_app.databinding.ActivityMainBinding
 import com.webitel.mobile_demo_app.notifications.Notifications
+import com.webitel.mobile_sdk.domain.ConnectListener
+import com.webitel.mobile_sdk.domain.ConnectState
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
-class MainActivity : AppCompatActivity() {
+
+class MainActivity : AppCompatActivity(), ConnectListener {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
@@ -29,7 +35,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         binding.toolbar.title = ""
@@ -39,6 +44,38 @@ class MainActivity : AppCompatActivity() {
         appBarConfiguration = AppBarConfiguration(navController.graph)
         setupActionBarWithNavController(navController, appBarConfiguration)
         checkAndRequestPermissions()
+
+        FirebaseMessaging.getInstance().token.addOnSuccessListener { s ->
+
+            runBlocking {
+                try {
+                    DemoApp.instance.portalClient2.registerFCMToken(s)
+                } catch (e: Exception) {
+                    Log.e("sendRegistration", e.message.toString())
+                }
+            }
+
+        }.addOnFailureListener {
+            Toast.makeText(
+                this@MainActivity,
+                "Failed to get token",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
+
+    override fun onResume() {
+        super.onResume()
+        DemoApp.instance.portalClient2.addConnectListener(this)
+        val state = DemoApp.instance.portalClient2.getConnectState()
+        setConnectStateUI(state)
+    }
+
+
+    override fun onPause() {
+        DemoApp.instance.portalClient2.addConnectListener(this)
+        super.onPause()
     }
 
 
@@ -52,6 +89,14 @@ class MainActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
         handleIntent(intent)
+    }
+
+
+    override fun onStateChanged(from: ConnectState, to: ConnectState) {
+        Log.e("onStateChanged", "from - ${from.name}, to - ${to.name}")
+        runOnUiThread {
+            setConnectStateUI(to)
+        }
     }
 
 
@@ -112,5 +157,21 @@ class MainActivity : AppCompatActivity() {
             return false
         }
         return true
+    }
+
+
+    private fun setConnectStateUI(state: ConnectState) {
+        when(state) {
+            ConnectState.CONNECTING -> {
+                binding.toolbarTitle.text = "Connecting..."
+            }
+            ConnectState.READY -> {
+                binding.toolbarTitle.text = "\uD83D\uDFE2 Ready"
+            }
+            ConnectState.DISCONNECTED -> {
+                binding.toolbarTitle.text = "\uD83D\uDD34 Disconnected"
+                Log.e("DISCONNECTED", ConnectState.DISCONNECTED.message)
+            }
+        }
     }
 }

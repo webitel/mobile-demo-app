@@ -31,7 +31,7 @@ interface MessagesDao {
     @Query("UPDATE message_table SET mediaDownloading = 0, mediaUri = :location WHERE id = :id")
     suspend fun endMediaDownload(id: Long, location: String?)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(messages: List<MessageDataItem>)
 
     @Query("UPDATE message_table SET id = :messageId, mediaId = :fileId, isSent = :isSent WHERE uuid = :uuid")

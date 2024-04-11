@@ -54,6 +54,10 @@ class SimpleFragment : Fragment() {
             vm.userLogout()
         }
 
+        binding.openConnectBtn.setOnClickListener {
+            vm.openConnect()
+        }
+
         vm.userActivity.observe(viewLifecycleOwner) {
             if (it != null) {
                 setupButton(it)

@@ -243,6 +243,8 @@ class MessagesRepository(
 
         val options = Message.options()
 
+        options.sendId(uuid)
+
         if (text.isNotEmpty()) options.withText(text)
         if (attachment != null) {
             options.withMedia(

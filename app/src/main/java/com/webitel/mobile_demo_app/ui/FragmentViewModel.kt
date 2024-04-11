@@ -69,6 +69,13 @@ class FragmentViewModel : ViewModel() {
     }
 
 
+    fun openConnect() {
+        viewModelScope.launch(Dispatchers.IO) {
+            portalClient.openConnect()
+        }
+    }
+
+
     fun setUser() {
         viewModelScope.launch(Dispatchers.IO) {
             portalClient.setUser(usersRepository.getUser())
