@@ -1,4 +1,4 @@
-package com.webitel.mobile_demo_app.ui.chat
+package com.webitel.mobile_demo_app.chat
 
 import android.content.Context
 import android.util.AttributeSet

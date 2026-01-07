@@ -8,15 +8,12 @@ plugins {
 android {
     namespace = "com.webitel.mobile_demo_app"
     compileSdk = 34
-
     defaultConfig {
         applicationId = "com.webitel.mobile_demo_app"
         minSdk = 24
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
-
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -51,18 +48,7 @@ dependencies {
     implementation("androidx.navigation:navigation-fragment-ktx:2.3.5")
     implementation("com.github.bumptech.glide:glide:4.13.0")
 
-    //implementation("com.webitel:mobile-sdk:0.6.1")
-    implementation("com.github.webitel:mobile-sdk:0.6.1")
-
-    implementation("androidx.room:room-ktx:2.6.1")
-    annotationProcessor("androidx.room:room-compiler:2.6.1")
-    kapt("androidx.room:room-compiler:2.6.1")
-
-    testImplementation("junit:junit:4.13.2")
-    testImplementation("androidx.test:core-ktx:1.5.0")
-    testImplementation("org.robolectric:robolectric:4.9.2")
-    testImplementation("org.junit.jupiter:junit-jupiter:5.8.2")
-    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    implementation("com.github.webitel:mobile-sdk-android:0.20.2")
 
     implementation(platform("com.google.firebase:firebase-bom:32.6.0"))
     implementation("com.google.firebase:firebase-analytics")

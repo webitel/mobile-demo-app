@@ -1,4 +1,4 @@
-package com.webitel.mobile_demo_app.ui.chat
+package com.webitel.mobile_demo_app.chat
 
 import android.content.Intent
 import android.net.Uri
@@ -10,12 +10,21 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.snackbar.Snackbar
+import com.webitel.mobile_demo_app.R
 import com.webitel.mobile_demo_app.databinding.FragmentChatBinding
+import kotlinx.coroutines.launch
 
 
-class ChatFragment : Fragment() {
+class ChatFragment : Fragment(R.layout.fragment_chat) {
     private var binding: FragmentChatBinding? = null
     private val vm: ChatViewModel by activityViewModels()
+    private var lastSize = 0
     private lateinit var adapter: ChatAdapter
     private val openDocument =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
@@ -43,7 +52,7 @@ class ChatFragment : Fragment() {
 
         adapter = ChatAdapter(
             onDownloadFile = {
-                onDownloadFileClick(it.id)
+                onDownloadFileClick(it.message!!.id)
             },
             onOpenMedia = { mimeType, uri ->
                 if (mimeType.startsWith("image/")) {
@@ -65,7 +74,7 @@ class ChatFragment : Fragment() {
         binding?.layoutSend?.setOnClickListener {
             val t = binding?.inputMessage?.text
             if (t != null) {
-                vm.sendMessage(t.toString(), null)
+                vm.sendMessage(t.toString())
                 binding?.inputMessage?.setText("")
             }
         }
@@ -73,33 +82,43 @@ class ChatFragment : Fragment() {
         binding?.chooseFileBtn?.setOnClickListener {
             openDocument.launch(arrayOf("*/*"))
         }
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                vm.messages.collect { list ->
+                    val rv = binding?.rv ?: return@collect
+                    val isNewItem = list.size > lastSize
 
-        vm.messages.observe(viewLifecycleOwner) {
-            val newest = adapter.getNewestMessage()
-            adapter.submitList(it ?: listOf())
-            if (it != null && it.lastOrNull()?.uuid != newest?.uuid) {
-                binding?.rv?.smoothScrollToPosition(it.size - 1)
+                    val shouldScroll = (isNewItem && (isNearBottom(rv) || !list.lastOrNull()?.requestId.isNullOrEmpty()))
+                    adapter.submitList(list) {
+                        if (shouldScroll && list.isNotEmpty()) {
+                            rv.scrollToPosition(list.size - 1)
+                        }
+                    }
+
+                    lastSize = list.size
+                }
             }
         }
 
-        vm.error.observe(viewLifecycleOwner) {
-            if (it != null) {
-                binding?.errorText?.text = "${it.code}\n${it.message}"
-                binding?.errorText?.visibility = View.VISIBLE
-                binding?.inputMessage?.isEnabled = false
-                binding?.layoutSend?.isEnabled = false
-            } else {
-                binding?.inputMessage?.isEnabled = true
-                binding?.layoutSend?.isEnabled = true
-                binding?.errorText?.visibility = View.GONE
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                vm.errorEvents.collect { err ->
+                    Snackbar.make(
+                        binding!!.root,
+                        err,
+                        Snackbar.LENGTH_LONG
+                    ).show()
+                }
             }
         }
     }
 
 
-    override fun onResume() {
-        vm.getUpdates()
-        super.onResume()
+    private fun isNearBottom(rv: RecyclerView, threshold: Int = 2): Boolean {
+        val lm = rv.layoutManager as? LinearLayoutManager ?: return true
+        val lastVisible = lm.findLastVisibleItemPosition()
+        val total = lm.itemCount
+        return lastVisible >= total - 1 - threshold
     }
 
 
@@ -121,17 +140,13 @@ class ChatFragment : Fragment() {
 
 
     private fun sendMediaMessage(uri: Uri) {
-        val t = binding?.inputMessage?.text ?: ""
-        vm.sendMessage(
-            text = t.toString(),
-            uri
-        )
+        vm.sendMediaMessage(uri)
     }
 
 
-    private fun onDownloadFileClick(messageId: Long?) {
-        if (messageId != null && messageId > 0)
-            vm.downloadFile(messageId)
+    private fun onDownloadFileClick(messageId: Long) {
+        if (messageId > 0)
+          //  vm.downloadFile(messageId)
         else {
             Toast.makeText(
                 requireContext(),
